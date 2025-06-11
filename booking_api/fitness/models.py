@@ -37,8 +37,8 @@ class FitnessClass(models.Model):
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     instructor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='instructor_classes')
-    max_capacity = models.IntegerField(default=20)
-    available_slot = models.IntegerField(default=20)
+    max_capacity = models.IntegerField(default=5)
+    available_slot = models.IntegerField(default=5)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

@@ -8,14 +8,14 @@ from rest_framework.views import APIView
 from django.http import JsonResponse
 from django.contrib.auth.hashers import make_password
 from django.core.exceptions import ValidationError
-from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.parsers import MultiPartParser, FormParser, JSONParser
 from datetime import datetime, date
 from .pagination import *
-
+from dateutil.parser import parse
 
 class UserRegisterApi(APIView):
     permission_classes = [IsAuthenticated]
-    parser_classes = [MultiPartParser, FormParser]
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def post(self, request):
         try:
@@ -36,7 +36,7 @@ class UserRegisterApi(APIView):
                 date_of_birth=pDict.get('date_of_birth'),
                 phone_number=pDict['phone_number'],
                 gender=pDict['gender'],
-                profile_picture=request.FILES.get('profile_picture'),
+                profile_picture = request.FILES.get('profile_picture', None),
                 address_line1=pDict['address_line1'],
                 address_line2=pDict.get('address_line2', '')
             )
@@ -85,7 +85,6 @@ class UserListApi(APIView):
 
 
 class FitnessClassApi(APIView):
-    permission_classes = [IsAuthenticated]
 
     def post(self, request):
         message = 'Success'
@@ -123,14 +122,14 @@ class FitnessClassApi(APIView):
         try:
             start_date_str = request.query_params.get('start_date')
             end_date_str = request.query_params.get('end_date')
-
+            print(f"Start date string received: {start_date_str}")
             if not start_date_str:
                 return JsonResponse({
                     "message": "start_date is required",
                     "result": False
                 }, status=status.HTTP_400_BAD_REQUEST)
 
-            start_date = datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            start_date = parse(start_date_str).date()
 
             if start_date < date.today():
                 return JsonResponse({
@@ -139,7 +138,7 @@ class FitnessClassApi(APIView):
                 }, status=status.HTTP_400_BAD_REQUEST)
 
             if end_date_str:
-                end_date = datetime.strptime(end_date_str, "%Y-%m-%d").date()
+                end_date = parse(end_date_str).date()
 
                 if end_date < date.today():
                     return JsonResponse({
@@ -164,9 +163,9 @@ class FitnessClassApi(APIView):
                 "data": serializer.data
             }, status=status.HTTP_200_OK)
 
-        except ValueError:
+        except (ValueError, TypeError):
             return JsonResponse({
-                "message": "Invalid date format. Please use YYYY-MM-DD.",
+                "message": "Invalid date format. Acceptable formats: YYYY-MM-DD or ISO datetime.",
                 "result": False
             }, status=status.HTTP_400_BAD_REQUEST)
 

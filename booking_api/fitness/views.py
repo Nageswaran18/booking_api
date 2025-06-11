@@ -238,6 +238,12 @@ class BookingApi(APIView):
                     "result": False
                 }, status=status.HTTP_404_NOT_FOUND)
 
+            if fitness_class.available_slot == 0:
+                return JsonResponse({
+                    "message": "Slot is over. No available slots.",
+                    "result": False
+                }, status=status.HTTP_400_BAD_REQUEST)
+
             if fitness_class.available_slot >= number_of_slots:
                 status_value = 'Confirmed'
                 fitness_class.available_slot -= number_of_slots
